@@ -4,7 +4,7 @@
   <title><![CDATA[My Octopress Blog]]></title>
   <link href="http://yannbelief.github.io/atom.xml" rel="self"/>
   <link href="http://yannbelief.github.io/"/>
-  <updated>2013-05-08T21:23:01+08:00</updated>
+  <updated>2013-05-09T03:58:22+08:00</updated>
   <id>http://yannbelief.github.io/</id>
   <author>
     <name><![CDATA[Your Name]]></name>
@@ -12,5 +12,20 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[this is test page]]></title>
+    <link href="http://yannbelief.github.io/blog/2013/05/09/this-is-test-page/"/>
+    <updated>2013-05-09T03:57:00+08:00</updated>
+    <id>http://yannbelief.github.io/blog/2013/05/09/this-is-test-page</id>
+    <content type="html"><![CDATA[<p>content line1</p>
+
+<ul>
+<li><p>line2</p></li>
+<li><p>line3</p></li>
+</ul>
+
+]]></content>
+  </entry>
   
 </feed>
