@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: comment | Eric's Blog]]></title>
+  <link href="http://yannbelief.github.io/blog/categories/comment/atom.xml" rel="self"/>
+  <link href="http://yannbelief.github.io/"/>
+  <updated>2013-05-10T14:44:51+08:00</updated>
+  <id>http://yannbelief.github.io/</id>
+  <author>
+    <name><![CDATA[Eric]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Multiline Comments in python]]></title>
+    <link href="http://yannbelief.github.io/blog/2013/05/09/this-is-test-page/"/>
+    <updated>2013-05-09T03:57:00+08:00</updated>
+    <id>http://yannbelief.github.io/blog/2013/05/09/this-is-test-page</id>
+    <content type="html"><![CDATA[<h2>Multiline Comments in python</h2>
+
+<p>You can use triple-quoted strings. When they&rsquo;re not a docstring (first thing in a class/function/module), they are ignored.</p>
+
+<p>Guido van Rossum (creator of Python) approves.</p>
+
+<pre>
+'''
+This is a multiline
+comment.
+'''
+</pre>
+
+
+<p>From <a href="http://stackoverflow.com/questions/7696924/multiline-comments-in-python">Multiline Comments in python</a></p>
+
+<p>Ref <a href="http://stackoverflow.com/questions/397148/why-doesnt-python-have-multiline-comments">Why doesn&rsquo;t Python have multiline comments?</a></p>
+]]></content>
+  </entry>
+  
+</feed>

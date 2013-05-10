@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Eric's Blog</title>
+  <title>Inheritance: When? - Eric's Blog</title>
   <meta name="author" content="Eric">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://yannbelief.github.io">
+  <link rel="canonical" href="http://yannbelief.github.io/blog/2013/05/10/inheritance-when">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Eric's Blog" type="application/atom+xml">
@@ -61,15 +61,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/05/10/inheritance-when/">Inheritance: When?</a></h1>
+      <h1 class="entry-title">Inheritance: When?</h1>
     
     
       <p class="meta">
@@ -92,7 +89,7 @@
   </header>
 
 
-  <div class="entry-content"><p>何時使用繼承？</p>
+<div class="entry-content"><p>何時使用繼承？</p>
 
 <blockquote><p>Inheritance is appropriate only in circumstances where the subclass really is a subtype of the superclass. In other words, a class B should extend a class A only if an “is-a” relationship exists between the two classes. If you are tempted to have a class B extend a class A, ask yourself the question: <strong>Is every B really an A?</strong> If you cannot truthfully answer yes to this question, B should not extend A. If the answer is no, it is often the case that B should contain a private instance of A and expose a smaller and simpler API: A is not an essential part of B, merely a detail of its implementation. (Effective Java, 2/e, p.85~86)</p></blockquote>
 
@@ -111,22 +108,16 @@
 
 <p><a id="3"></a>[3] Gear shift up ：換檔，換至大的齒輪， 切換到低轉速高力道的檔位。 參考文件：<a href="http://www.ecodrive.org/en/what_is_ecodriving-/the_golden_rules_of_ecodriving/#shift">Shift up early &ndash; The golden rules of ecodriving</a></p>
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/05/09/this-is-test-page/">Multiline Comments in Python</a></h1>
-    
-    
-      <p class="meta">
-        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Eric</span></span>
+
+      
 
 
 
@@ -138,43 +129,41 @@
   
 
 
-<time datetime="2013-05-09T03:57:00+08:00" pubdate data-updated="true">May 9<span>th</span>, 2013</time>
-        
-      </p>
+<time datetime="2013-05-10T13:57:00+08:00" pubdate data-updated="true">May 10<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/inheritance/'>Inheritance</a>, <a class='category' href='/blog/categories/java/'>Java</a>
+  
+</span>
+
+
+      
+
+
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><h2>Multiline Comments in python</h2>
-
-<p>You can use triple-quoted strings. When they&rsquo;re not a docstring (first thing in a class/function/module), they are ignored.</p>
-
-<p>Guido van Rossum (creator of Python) approves.</p>
-
-<pre>
-'''
-This is a multiline
-comment.
-'''
-</pre>
-
-
-<p>From <a href="http://stackoverflow.com/questions/7696924/multiline-comments-in-python">Multiline Comments in python</a></p>
-
-<p>Ref <a href="http://stackoverflow.com/questions/397148/why-doesnt-python-have-multiline-comments">Why doesn&rsquo;t Python have multiline comments?</a></p>
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://yannbelief.github.io/blog/2013/05/10/inheritance-when/" data-via="" data-counturl="http://yannbelief.github.io/blog/2013/05/10/inheritance-when/" >Tweet</a>
+  
+  
+  
 </div>
-  
-  
 
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/05/09/this-is-test-page/" title="Previous Post: Multiline Comments in python">&laquo; Multiline Comments in python</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
 </div>
+
 <aside class="sidebar">
   
     <section>
@@ -209,6 +198,7 @@ comment.
 
   
 </aside>
+
 
     </div>
   </div>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Eric's Blog]]></title>
-  <link href="http://yannbelief.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Inheritance | Eric's Blog]]></title>
+  <link href="http://yannbelief.github.io/blog/categories/inheritance/atom.xml" rel="self"/>
   <link href="http://yannbelief.github.io/"/>
   <updated>2013-05-10T14:44:51+08:00</updated>
   <id>http://yannbelief.github.io/</id>
@@ -36,31 +36,6 @@
 <p><a id="2"></a>[2] Tesla Model S 不需要變速箱、傳動軸、與排氣管。來源：<a href="http://www.inside.com.tw/2013/01/26/tesla">鋼鐵人的四門房車，Tesla Model S 試駕</a></p>
 
 <p><a id="3"></a>[3] Gear shift up ：換檔，換至大的齒輪， 切換到低轉速高力道的檔位。 參考文件：<a href="http://www.ecodrive.org/en/what_is_ecodriving-/the_golden_rules_of_ecodriving/#shift">Shift up early &ndash; The golden rules of ecodriving</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Multiline Comments in python]]></title>
-    <link href="http://yannbelief.github.io/blog/2013/05/09/this-is-test-page/"/>
-    <updated>2013-05-09T03:57:00+08:00</updated>
-    <id>http://yannbelief.github.io/blog/2013/05/09/this-is-test-page</id>
-    <content type="html"><![CDATA[<h2>Multiline Comments in python</h2>
-
-<p>You can use triple-quoted strings. When they&rsquo;re not a docstring (first thing in a class/function/module), they are ignored.</p>
-
-<p>Guido van Rossum (creator of Python) approves.</p>
-
-<pre>
-'''
-This is a multiline
-comment.
-'''
-</pre>
-
-
-<p>From <a href="http://stackoverflow.com/questions/7696924/multiline-comments-in-python">Multiline Comments in python</a></p>
-
-<p>Ref <a href="http://stackoverflow.com/questions/397148/why-doesnt-python-have-multiline-comments">Why doesn&rsquo;t Python have multiline comments?</a></p>
 ]]></content>
   </entry>
   
