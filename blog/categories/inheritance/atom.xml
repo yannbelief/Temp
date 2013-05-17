@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Inheritance | Eric's Blog]]></title>
   <link href="http://yannbelief.github.io/blog/categories/inheritance/atom.xml" rel="self"/>
   <link href="http://yannbelief.github.io/"/>
-  <updated>2013-05-10T14:44:51+08:00</updated>
+  <updated>2013-05-17T16:56:50+08:00</updated>
   <id>http://yannbelief.github.io/</id>
   <author>
     <name><![CDATA[Eric]]></name>
@@ -20,7 +20,9 @@
     <id>http://yannbelief.github.io/blog/2013/05/10/inheritance-when</id>
     <content type="html"><![CDATA[<p>何時使用繼承？</p>
 
-<blockquote><p>Inheritance is appropriate only in circumstances where the subclass really is a subtype of the superclass. In other words, a class B should extend a class A only if an “is-a” relationship exists between the two classes. If you are tempted to have a class B extend a class A, ask yourself the question: <strong>Is every B really an A?</strong> If you cannot truthfully answer yes to this question, B should not extend A. If the answer is no, it is often the case that B should contain a private instance of A and expose a smaller and simpler API: A is not an essential part of B, merely a detail of its implementation. (Effective Java, 2/e, p.85~86)</p></blockquote>
+<blockquote>
+  <p>Inheritance is appropriate only in circumstances where the subclass really is a subtype of the superclass. In other words, a class B should extend a class A only if an “is-a” relationship exists between the two classes. If you are tempted to have a class B extend a class A, ask yourself the question: <strong>Is every B really an A?</strong> If you cannot truthfully answer yes to this question, B should not extend A. If the answer is no, it is often the case that B should contain a private instance of A and expose a smaller and simpler API: A is not an essential part of B, merely a detail of its implementation. (Effective Java, 2/e, p.85~86)</p>
+</blockquote>
 
 <p>換句話說就是繼承的關係要符合 Liskov Substitution Principle。在原本使用父類別的場合（e.g. 方法、類別）傳入子類別時，不會產生不一致的行為。</p>
 
@@ -28,14 +30,14 @@
 
 <p>父類別若包含太多實作方法，子類別繼承之後很容易修改到原本的實作，或可能產生退化的實作方法<sub><a href="#1">1</a></sub>（頭重腳輕）。用 Uncle Bob 的穩定度分析來說，即一個套件的穩定程度應該要跟它的抽象程度一致。套用在類別上也適用。父類別是依賴關係中的最下層，屬於被依賴的一方，對依賴它的子類別有維護功能合約的責任，所以需要較大的穩定度，不應該包含太多的實作細節。</p>
 
-<h2>註：</h2>
+<h2 id="section">註：</h2>
 
-<p><a id="1"></a>[1] 就像這隻解釋 LSP 影片中的 Car 例子，Tesla 實作了 Car 介面，但它是電動車，無須變速箱<sub><a href="#2">2</a></sub>，所以面對 Car 介面要求提供的 GearShiftUp() <sub><a href="#3">3</a></sub>方法採取了退化的實作，即產生不做事的空白方法，或者在方法被呼叫時丟出例外。這兩種實作均產生了非預期的行為，與 Car 介面擔保的功能不同。這種狀況違反了 LSP，會破壞原本依賴 Car 介面約定的功能而運作正常的程式碼，所以我們說 Tesla 不是一個（有變速箱的） Car 。
-影片來源： <a href="http://www.d80.co.uk/post/2013/04/05/LSP-The-Liskov-Substitution-Principle-in-5-minutes.aspx">LSP &ndash; The Liskov Substitution Principle in 5 minutes</a></p>
+<p><a id="1"></a>[1] 就像這隻解釋 LSP 影片中的 Car 例子，Tesla 實作了 Car 介面，但它是電動車，無須變速箱<sub><a href="#2">2</a></sub>，所以面對 Car 介面要求提供的 GearShiftUp() <sub><a href="#3">3</a></sub>方法採取了退化的實作，即產生不做事的空白方法，或者在方法被呼叫時丟出例外。這兩種實作均產生了非預期的行為，與 Car 介面擔保的功能不同。這種狀況違反了 LSP，會破壞原本依賴 Car 介面約定的功能而運作正常的程式碼，所以我們說 Tesla 不是一個（有變速箱的） Car 。 
+影片來源： <a href="http://www.d80.co.uk/post/2013/04/05/LSP-The-Liskov-Substitution-Principle-in-5-minutes.aspx">LSP - The Liskov Substitution Principle in 5 minutes</a></p>
 
 <p><a id="2"></a>[2] Tesla Model S 不需要變速箱、傳動軸、與排氣管。來源：<a href="http://www.inside.com.tw/2013/01/26/tesla">鋼鐵人的四門房車，Tesla Model S 試駕</a></p>
 
-<p><a id="3"></a>[3] Gear shift up ：換檔，換至大的齒輪， 切換到低轉速高力道的檔位。 參考文件：<a href="http://www.ecodrive.org/en/what_is_ecodriving-/the_golden_rules_of_ecodriving/#shift">Shift up early &ndash; The golden rules of ecodriving</a></p>
+<p><a id="3"></a>[3] Gear shift up ：換檔，換至大的齒輪， 切換到低轉速高力道的檔位。 參考文件：<a href="http://www.ecodrive.org/en/what_is_ecodriving-/the_golden_rules_of_ecodriving/#shift">Shift up early - The golden rules of ecodriving</a></p>
 ]]></content>
   </entry>
   

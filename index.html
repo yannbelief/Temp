@@ -9,7 +9,7 @@
   <meta name="author" content="Eric">
 
   
-  <meta name="description" content="何時使用繼承？ Inheritance is appropriate only in circumstances where the subclass really is a subtype of the superclass. In other words, a class B should &hellip;">
+  <meta name="description" content="前言 這個案例是個人 DirDesc Project 裡的程式碼，問題出在產生 GUI 元件的方法裡夾雜了各種不同的顯示邏輯，這些邏輯應該在種類判定之時，就予以決定，卻擠在 GUI 元件產生的前一刻，才做判斷，以至於在各種邏輯交雜之處的 getRowEntity 方法內產生了許多 bug， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,6 +69,398 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/05/17/zhong-gou-an-li-1-dirdesc/">重構案例1-DirDesc</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-17T13:00:00+08:00" pubdate data-updated="true">May 17<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2 id="section">前言</h2>
+
+<p>這個案例是個人 DirDesc Project 裡的程式碼，問題出在產生 GUI 元件的方法裡夾雜了各種不同的顯示邏輯，這些邏輯應該在種類判定之時，就予以決定，卻擠在 GUI 元件產生的前一刻，才做判斷，以至於在各種邏輯交雜之處的 getRowEntity 方法內產生了許多 bug，在除錯上增加了許多困難。</p>
+
+<p>以下的重構即是企圖釐清雜邏輯的嘗試。</p>
+
+<h2 id="section-1">重構前</h2>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">add_row</span> <span class="n">path</span>
+</span><span class="line">	<span class="n">row</span> <span class="o">=</span> <span class="n">genFileRow</span> <span class="nb">name</span><span class="p">,</span>  <span class="n">path</span><span class="p">,</span> <span class="n">desc</span> <span class="p">,</span><span class="s2">&quot;_____&quot;</span>
+</span><span class="line">	<span class="c1">#add row logic</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">genDirRow</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="n">getRowEntity</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">dir</span><span class="o">+</span><span class="s2">&quot;/../&quot;</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;&lt;==&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line"><span class="k">def</span> <span class="nf">genFileRow</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">tags</span><span class="p">)</span>
+</span><span class="line">	<span class="n">getRowEntity</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="s2">&quot;==&gt;&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">getRowEntity</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">dir_tag</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">	<span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span><span class="o">+</span><span class="s2">&quot;/&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">stat</span> <span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">directory?</span>
+</span><span class="line">	<span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">+</span><span class="s2">&quot;/&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">stat</span> <span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">directory?</span>
+</span><span class="line">
+</span><span class="line">	<span class="c1">#code to gen row GUI (omitted)</span>
+</span><span class="line">	<span class="n">tag_event_box</span><span class="o">.</span><span class="n">signal_connect</span><span class="p">(</span><span class="s2">&quot;button_press_event&quot;</span><span class="p">)</span> <span class="k">do</span>
+</span><span class="line">		<span class="k">if</span> <span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">stat</span> <span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">directory?</span>
+</span><span class="line">			<span class="c1">#code to open dir with DirDesc</span>
+</span><span class="line"> 		<span class="k">end</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="section-2">重構1：將邏輯移出的嘗試</h2>
+
+<p>(r) genDirRow -&gt; genThisDirRow 重新命名</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">genThisDirRow</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="k">return</span> <span class="n">getRowEntity</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">dir</span><span class="o">+</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;&lt;==&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(+) genSubDirRow : 新增為處理子目錄顯示元件的生成邏輯預留的 method</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">genSubDirRow</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="k">return</span> <span class="n">getRowEntity</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="s2">&quot;/../&quot;</span><span class="p">,</span><span class="s2">&quot;==&gt;&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(m) 將判斷是否為目錄而將路徑結尾加上斜線的邏輯從 getRowEntity 向上移至 genFileRow</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">genFileRow</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">open_path</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">tags</span><span class="p">)</span>
+</span><span class="line">	<span class="k">if</span> <span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">stat</span> <span class="n">open_path</span><span class="p">)</span><span class="o">.</span><span class="n">directory?</span>
+</span><span class="line">		<span class="n">open_path</span> <span class="o">=</span> <span class="n">open_path</span><span class="o">+</span><span class="s2">&quot;/&quot;</span>
+</span><span class="line">		<span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span><span class="o">+</span><span class="s2">&quot;/&quot;</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">	<span class="n">getRowEntity</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">open_path</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="s2">&quot;==&gt;&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">getRowEntity</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">dir_tag</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">	<span class="c1">#code to gen row GUI (omitted)</span>
+</span><span class="line">	<span class="n">tag_event_box</span><span class="o">.</span><span class="n">signal_connect</span><span class="p">(</span><span class="s2">&quot;button_press_event&quot;</span><span class="p">)</span> <span class="k">do</span>
+</span><span class="line">		<span class="k">if</span> <span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">stat</span> <span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">directory?</span>
+</span><span class="line">			<span class="c1">#code to open dir with DirDesc</span>
+</span><span class="line"> 		<span class="k">end</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">	<span class="n">row</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="section-3">重構2：重新命名與抽取更多變動項</h2>
+
+<p>(+) genFileOrDirRow: 再將判斷是否為目錄的邏輯從 genFileRow 抽取出來，給予適當的名稱。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">genFileOrDirRow</span><span class="p">(</span><span class="n">open_path</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="nb">name</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">open_path</span><span class="p">)</span>
+</span><span class="line">	<span class="k">if</span> <span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">stat</span> <span class="n">open_path</span><span class="p">)</span><span class="o">.</span><span class="n">directory?</span>
+</span><span class="line">		<span class="n">genSubDirRow</span><span class="p">(</span><span class="nb">name</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="k">else</span>
+</span><span class="line">		<span class="n">genFileRow</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span><span class="n">open_path</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(m) genFileRow: 留下的為純粹給予相關配置參數並調用 GUI 元件生成函式的邏輯</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">genFileRow</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">open_path</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="n">getRowEntity</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">open_path</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="s2">&quot;_____&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(+) genDiveDirHanlder : 將針對目錄符號點擊才有的切換功能，從 getRowEntity 抽取出來。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">genDiveDirHanlder</span><span class="p">(</span><span class="n">dive_path</span><span class="p">)</span>
+</span><span class="line">	<span class="nb">lambda</span> <span class="p">{</span>
+</span><span class="line">		<span class="no">Thread</span><span class="o">.</span><span class="n">new</span> <span class="p">{</span>
+</span><span class="line">			<span class="c1"># code to open another GUI window</span>
+</span><span class="line">		<span class="p">}</span>
+</span><span class="line"> 	<span class="p">}</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(m) getRowEntity : 最後留下來的 getRowEntity 為純粹產生 GUI 元件的功能</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">getRowEntity</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">open_path</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">dive_path_handler</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">	<span class="c1">#code to gen row GUI (omitted)</span>
+</span><span class="line">	<span class="k">if</span> <span class="n">dive_path_handler</span> <span class="o">!=</span> <span class="kp">nil</span>
+</span><span class="line">		<span class="n">tag_event_box</span><span class="o">.</span><span class="n">signal_connect</span><span class="p">(</span><span class="s2">&quot;button_press_event&quot;</span><span class="p">)</span> <span class="k">do</span>
+</span><span class="line">			<span class="n">dive_path_handler</span><span class="o">.</span><span class="n">call</span>
+</span><span class="line">		<span class="k">end</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(m) genSubDirRow, genThisDirRow: 針對當下目錄與子目錄點擊時開啟不同資料夾的邏輯，因為 genDiveDirHanlder 輔助函式的抽取，而得以往上浮現至相關配置變數一起給定的地方。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">genSubDirRow</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="k">return</span> <span class="n">getRowEntity</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="s2">&quot;==&gt;&quot;</span><span class="p">,</span><span class="n">genDiveDirHanlder</span><span class="p">(</span><span class="n">dir</span><span class="p">))</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">genThisDirRow</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</span><span class="line">	<span class="k">return</span> <span class="n">getRowEntity</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">dir</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="s2">&quot;&lt;==&quot;</span><span class="p">,</span><span class="n">genDiveDirHanlder</span><span class="p">(</span><span class="n">dir</span><span class="o">+</span><span class="s2">&quot;/../&quot;</span><span class="p">))</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>現在觀察到 SubDirRow, ThisDirRow, 與早先重構的 FileRow 都有各自的配置變數。這些配置變數會依照不同的 Row 種類而一起改變。值得將這些變數設計成配置物件來保存。</p>
+
+<h2 id="section-4">最後的重構：配置物件的建立</h2>
+
+<p>將各種 Row 的配置變數抽取成物件之後產生 ThisDirConfig, SubDirConfig, FileConfig 三種實作同樣方法的類別，原本配置變數被封裝成各自方法的回傳值。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">class</span> <span class="nc">ThisDirConfig</span>
+</span><span class="line">
+</span><span class="line">	<span class="k">def</span> <span class="nf">initialize</span>
+</span><span class="line">		<span class="c1">#p &quot;init #{path}&quot;</span>
+</span><span class="line">		<span class="vi">@abs_path</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">absolute_path</span><span class="p">(</span><span class="no">Dir</span><span class="o">.</span><span class="n">getwd</span><span class="p">)</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">
+</span><span class="line">	<span class="k">def</span> <span class="nf">path</span>
+</span><span class="line">		<span class="vi">@abs_path</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">
+</span><span class="line">	<span class="k">def</span> <span class="nf">display</span>
+</span><span class="line">		<span class="vi">@abs_path</span><span class="o">+</span><span class="s2">&quot;/&quot;</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">
+</span><span class="line">	<span class="k">def</span> <span class="nf">dive_path</span>
+</span><span class="line">		<span class="vi">@abs_path</span> <span class="o">+</span> <span class="s2">&quot;/../&quot;</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">
+</span><span class="line">	<span class="k">def</span> <span class="nf">dive_display</span>
+</span><span class="line">		<span class="s2">&quot;&lt;==&quot;</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">
+</span><span class="line">	<span class="k">def</span> <span class="nf">desc_path</span>
+</span><span class="line">		<span class="vi">@abs_path</span> <span class="o">+</span> <span class="s2">&quot;/.desc&quot;</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">SubDirConfig</span>
+</span><span class="line">	<span class="c1"># code omitted</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">FileConfig</span>
+</span><span class="line">	<span class="c1"># code omitted</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(-) genSubDirRow, genThisDirRow, genFileRow : 將配置變數抽取成物件之後，原本作為其存放位置的三個方法責任已盡，予以移除。</p>
+
+<p>(+) add_row_by_config, gen_row_by_config : 因應 Config 物件產生而改變的方法，方法傳入的參數因為共屬於 config 物件而結合在一起，較原始版本簡潔。因為上面三個方法的消失與 Config 物件的產生，genDiveDirHanlder 方法的調用處再次回到產生 GUI 的方法內。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="k">def</span> <span class="nf">add_row_by_config</span> <span class="n">config</span>
+</span><span class="line">	<span class="c1"># code to get desc</span>
+</span><span class="line">	<span class="n">row</span> <span class="o">=</span> <span class="n">gen_row_by_config</span> <span class="n">config</span><span class="p">,</span> <span class="n">desc</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">gen_row_by_config</span> <span class="n">config</span><span class="p">,</span> <span class="n">desc</span>
+</span><span class="line">	<span class="c1"># code to gen row GUI</span>
+</span><span class="line">	<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">dive_path</span> <span class="o">!=</span> <span class="kp">nil</span>
+</span><span class="line">		<span class="n">tag_event_box</span><span class="o">.</span><span class="n">signal_connect</span><span class="p">(</span><span class="s2">&quot;button_press_event&quot;</span><span class="p">)</span> <span class="k">do</span>
+</span><span class="line">			<span class="n">genDiveDirHanlder</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">dive_path</span><span class="p">)</span><span class="o">.</span><span class="n">call</span>
+</span><span class="line">		<span class="k">end</span>
+</span><span class="line">	<span class="k">end</span>
+</span><span class="line">	<span class="n">row</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>(m) processing flow: 最後的處理流程。在一開始變動路徑被偵測到時立刻判斷使否為目錄，並產生相關的配置物件。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="c1">#entry code</span>
+</span><span class="line"><span class="k">if</span> <span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">stat</span> <span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">directory?</span>
+</span><span class="line">	<span class="n">c</span> <span class="o">=</span><span class="p">(</span><span class="no">SubDirConfig</span><span class="o">.</span><span class="n">new</span> <span class="n">path</span><span class="p">)</span>					
+</span><span class="line"><span class="k">else</span>
+</span><span class="line">	<span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="no">FileConfig</span><span class="o">.</span><span class="n">new</span> <span class="n">path</span><span class="p">)</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line"><span class="n">add_row_by_config</span>  <span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="section-5">後記</h2>
+
+<p>整個重構流程的指導原則為 SRP 單一責任原則，即一個區塊內程式碼的變更只能有一種理由。以此將風馬牛不相干的程式碼移出該區塊。此例中為將判斷是否為目錄而決定顯示字串的邏輯，移出 GUI 元件生成邏輯。</p>
+
+<h2 id="section-6">心得</h2>
+
+<p>初用 ruby 寫 project 有些 naming style 還是因襲著 Java, C# 的習慣，多寫一點應該會改善。這個案例重構起來很累人，但是後來發現值得寫成教材。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/05/10/inheritance-when/">Inheritance: When?</a></h1>
     
     
@@ -94,7 +486,9 @@
 
   <div class="entry-content"><p>何時使用繼承？</p>
 
-<blockquote><p>Inheritance is appropriate only in circumstances where the subclass really is a subtype of the superclass. In other words, a class B should extend a class A only if an “is-a” relationship exists between the two classes. If you are tempted to have a class B extend a class A, ask yourself the question: <strong>Is every B really an A?</strong> If you cannot truthfully answer yes to this question, B should not extend A. If the answer is no, it is often the case that B should contain a private instance of A and expose a smaller and simpler API: A is not an essential part of B, merely a detail of its implementation. (Effective Java, 2/e, p.85~86)</p></blockquote>
+<blockquote>
+  <p>Inheritance is appropriate only in circumstances where the subclass really is a subtype of the superclass. In other words, a class B should extend a class A only if an “is-a” relationship exists between the two classes. If you are tempted to have a class B extend a class A, ask yourself the question: <strong>Is every B really an A?</strong> If you cannot truthfully answer yes to this question, B should not extend A. If the answer is no, it is often the case that B should contain a private instance of A and expose a smaller and simpler API: A is not an essential part of B, merely a detail of its implementation. (Effective Java, 2/e, p.85~86)</p>
+</blockquote>
 
 <p>換句話說就是繼承的關係要符合 Liskov Substitution Principle。在原本使用父類別的場合（e.g. 方法、類別）傳入子類別時，不會產生不一致的行為。</p>
 
@@ -102,14 +496,14 @@
 
 <p>父類別若包含太多實作方法，子類別繼承之後很容易修改到原本的實作，或可能產生退化的實作方法<sub><a href="#1">1</a></sub>（頭重腳輕）。用 Uncle Bob 的穩定度分析來說，即一個套件的穩定程度應該要跟它的抽象程度一致。套用在類別上也適用。父類別是依賴關係中的最下層，屬於被依賴的一方，對依賴它的子類別有維護功能合約的責任，所以需要較大的穩定度，不應該包含太多的實作細節。</p>
 
-<h2>註：</h2>
+<h2 id="section">註：</h2>
 
-<p><a id="1"></a>[1] 就像這隻解釋 LSP 影片中的 Car 例子，Tesla 實作了 Car 介面，但它是電動車，無須變速箱<sub><a href="#2">2</a></sub>，所以面對 Car 介面要求提供的 GearShiftUp() <sub><a href="#3">3</a></sub>方法採取了退化的實作，即產生不做事的空白方法，或者在方法被呼叫時丟出例外。這兩種實作均產生了非預期的行為，與 Car 介面擔保的功能不同。這種狀況違反了 LSP，會破壞原本依賴 Car 介面約定的功能而運作正常的程式碼，所以我們說 Tesla 不是一個（有變速箱的） Car 。
-影片來源： <a href="http://www.d80.co.uk/post/2013/04/05/LSP-The-Liskov-Substitution-Principle-in-5-minutes.aspx">LSP &ndash; The Liskov Substitution Principle in 5 minutes</a></p>
+<p><a id="1"></a>[1] 就像這隻解釋 LSP 影片中的 Car 例子，Tesla 實作了 Car 介面，但它是電動車，無須變速箱<sub><a href="#2">2</a></sub>，所以面對 Car 介面要求提供的 GearShiftUp() <sub><a href="#3">3</a></sub>方法採取了退化的實作，即產生不做事的空白方法，或者在方法被呼叫時丟出例外。這兩種實作均產生了非預期的行為，與 Car 介面擔保的功能不同。這種狀況違反了 LSP，會破壞原本依賴 Car 介面約定的功能而運作正常的程式碼，所以我們說 Tesla 不是一個（有變速箱的） Car 。 
+影片來源： <a href="http://www.d80.co.uk/post/2013/04/05/LSP-The-Liskov-Substitution-Principle-in-5-minutes.aspx">LSP - The Liskov Substitution Principle in 5 minutes</a></p>
 
 <p><a id="2"></a>[2] Tesla Model S 不需要變速箱、傳動軸、與排氣管。來源：<a href="http://www.inside.com.tw/2013/01/26/tesla">鋼鐵人的四門房車，Tesla Model S 試駕</a></p>
 
-<p><a id="3"></a>[3] Gear shift up ：換檔，換至大的齒輪， 切換到低轉速高力道的檔位。 參考文件：<a href="http://www.ecodrive.org/en/what_is_ecodriving-/the_golden_rules_of_ecodriving/#shift">Shift up early &ndash; The golden rules of ecodriving</a></p>
+<p><a id="3"></a>[3] Gear shift up ：換檔，換至大的齒輪， 切換到低轉速高力道的檔位。 參考文件：<a href="http://www.ecodrive.org/en/what_is_ecodriving-/the_golden_rules_of_ecodriving/#shift">Shift up early - The golden rules of ecodriving</a></p>
 </div>
   
   
@@ -145,23 +539,20 @@
   </header>
 
 
-  <div class="entry-content"><h2>Multiline Comments in python</h2>
-
-<p>You can use triple-quoted strings. When they&rsquo;re not a docstring (first thing in a class/function/module), they are ignored.</p>
+  <div class="entry-content"><h2 id="multiline-comments-in-python">Multiline Comments in python</h2>
+<p>You can use triple-quoted strings. When they’re not a docstring (first thing in a class/function/module), they are ignored.</p>
 
 <p>Guido van Rossum (creator of Python) approves.</p>
-
 <pre>
 '''
 This is a multiline
 comment.
 '''
 </pre>
-
-
 <p>From <a href="http://stackoverflow.com/questions/7696924/multiline-comments-in-python">Multiline Comments in python</a></p>
 
-<p>Ref <a href="http://stackoverflow.com/questions/397148/why-doesnt-python-have-multiline-comments">Why doesn&rsquo;t Python have multiline comments?</a></p>
+<p>Ref <a href="http://stackoverflow.com/questions/397148/why-doesnt-python-have-multiline-comments">Why doesn’t Python have multiline comments?</a></p>
+
 </div>
   
   
@@ -182,6 +573,10 @@ comment.
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/05/17/zhong-gou-an-li-1-dirdesc/">重構案例1-DirDesc</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/05/10/inheritance-when/">Inheritance: When?</a>
       </li>
     
@@ -198,6 +593,8 @@ comment.
 <li class='category'><a href='/blog/categories/java/'>Java (1)</a></li>
 <li class='category'><a href='/blog/categories/comment/'>comment (1)</a></li>
 <li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/refactoring/'>refactoring (1)</a></li>
+<li class='category'><a href='/blog/categories/ruby/'>ruby (1)</a></li>
 
   </ul>
 </section>

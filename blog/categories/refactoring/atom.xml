@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: refactoring | Eric's Blog]]></title>
+  <link href="http://yannbelief.github.io/blog/categories/refactoring/atom.xml" rel="self"/>
+  <link href="http://yannbelief.github.io/"/>
+  <updated>2013-05-17T16:56:50+08:00</updated>
+  <id>http://yannbelief.github.io/</id>
+  <author>
+    <name><![CDATA[Eric]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[重構案例1-DirDesc]]></title>
+    <link href="http://yannbelief.github.io/blog/2013/05/17/zhong-gou-an-li-1-dirdesc/"/>
+    <updated>2013-05-17T13:00:00+08:00</updated>
+    <id>http://yannbelief.github.io/blog/2013/05/17/zhong-gou-an-li-1-dirdesc</id>
+    <content type="html"><![CDATA[<h2 id="section">前言</h2>
+
+<p>這個案例是個人 DirDesc Project 裡的程式碼，問題出在產生 GUI 元件的方法裡夾雜了各種不同的顯示邏輯，這些邏輯應該在種類判定之時，就予以決定，卻擠在 GUI 元件產生的前一刻，才做判斷，以至於在各種邏輯交雜之處的 getRowEntity 方法內產生了許多 bug，在除錯上增加了許多困難。</p>
+
+<p>以下的重構即是企圖釐清雜邏輯的嘗試。</p>
+
+<h2 id="section-1">重構前</h2>
+
+<p>```ruby</p>
+
+<p>def add_row path
+	row = genFileRow name,  path, desc ,”_____”
+	#add row logic
+end</p>
+
+<p>def genDirRow(dir,desc)
+	getRowEntity(dir,dir+”/../”,desc,””,”&lt;==”)
+end
+def genFileRow(fn,path,desc,tags)
+	getRowEntity(fn,path,desc,tags,”==&gt;”)
+end</p>
+
+<p>def getRowEntity(fn,path,desc,tags,dir_tag)</p>
+
+<pre><code>fn = fn+"/" if (File.stat fn).directory?
+path = path+"/" if (File.stat path).directory?
+
+#code to gen row GUI (omitted)
+tag_event_box.signal_connect("button_press_event") do
+	if (File.stat path).directory?
+		#code to open dir with DirDesc
+ 		end
+end
+</code></pre>
+
+<p>end
+```</p>
+
+<h2 id="section-2">重構1：將邏輯移出的嘗試</h2>
+
+<p>(r) genDirRow -&gt; genThisDirRow 重新命名</p>
+
+<p>```ruby</p>
+
+<p>def genThisDirRow(dir,desc)
+	return getRowEntity(dir,dir+”“,desc,””,”&lt;==”)
+end</p>
+
+<p>```</p>
+
+<p>(+) genSubDirRow : 新增為處理子目錄顯示元件的生成邏輯預留的 method</p>
+
+<p>```ruby</p>
+
+<p>def genSubDirRow(dir,desc)
+	return getRowEntity(dir,desc,”/../”,”==&gt;”)
+end</p>
+
+<p>```</p>
+
+<p>(m) 將判斷是否為目錄而將路徑結尾加上斜線的邏輯從 getRowEntity 向上移至 genFileRow</p>
+
+<p>```ruby</p>
+
+<p>def genFileRow(fn,open_path,desc,tags)
+	if (File.stat open_path).directory?
+		open_path = open_path+”/”
+		fn = fn+”/” 
+	end
+	getRowEntity(fn,open_path,desc,tags,”==&gt;”)
+end</p>
+
+<p>def getRowEntity(fn,path,desc,tags,dir_tag)</p>
+
+<pre><code>#code to gen row GUI (omitted)
+tag_event_box.signal_connect("button_press_event") do
+	if (File.stat path).directory?
+		#code to open dir with DirDesc
+ 		end
+end
+row end
+</code></pre>
+
+<p>```</p>
+
+<h2 id="section-3">重構2：重新命名與抽取更多變動項</h2>
+
+<p>(+) genFileOrDirRow: 再將判斷是否為目錄的邏輯從 genFileRow 抽取出來，給予適當的名稱。</p>
+
+<p>```ruby</p>
+
+<p>def genFileOrDirRow(open_path,desc)
+	name = File.basename(open_path)
+	if (File.stat open_path).directory?
+		genSubDirRow(name+”/”,desc)
+	else
+		genFileRow(name,open_path,desc)
+	end
+end</p>
+
+<p>```</p>
+
+<p>(m) genFileRow: 留下的為純粹給予相關配置參數並調用 GUI 元件生成函式的邏輯</p>
+
+<p>``` ruby</p>
+
+<p>def genFileRow(fn,open_path,desc)
+	getRowEntity(fn,open_path,desc,”_____”)
+end</p>
+
+<p>```</p>
+
+<p>(+) genDiveDirHanlder : 將針對目錄符號點擊才有的切換功能，從 getRowEntity 抽取出來。</p>
+
+<p>```ruby </p>
+
+<p>def genDiveDirHanlder(dive_path)
+	lambda {
+		Thread.new {
+			# code to open another GUI window
+		}
+ 	}
+end</p>
+
+<p>```</p>
+
+<p>(m) getRowEntity : 最後留下來的 getRowEntity 為純粹產生 GUI 元件的功能</p>
+
+<p>```ruby</p>
+
+<p>def getRowEntity(fn, open_path, desc, tags, dive_path_handler = nil)</p>
+
+<pre><code>#code to gen row GUI (omitted)
+if dive_path_handler != nil
+	tag_event_box.signal_connect("button_press_event") do
+		dive_path_handler.call
+	end
+end
+</code></pre>
+
+<p>end</p>
+
+<p>```</p>
+
+<p>(m) genSubDirRow, genThisDirRow: 針對當下目錄與子目錄點擊時開啟不同資料夾的邏輯，因為 genDiveDirHanlder 輔助函式的抽取，而得以往上浮現至相關配置變數一起給定的地方。</p>
+
+<p>```ruby</p>
+
+<p>def genSubDirRow(dir,desc)
+	return getRowEntity(dir,dir,desc,”==&gt;”,genDiveDirHanlder(dir))
+end</p>
+
+<p>def genThisDirRow(dir,desc)
+	return getRowEntity(dir,dir,desc,”&lt;==”,genDiveDirHanlder(dir+”/../”))
+end</p>
+
+<p>```</p>
+
+<p>現在觀察到 SubDirRow, ThisDirRow, 與早先重構的 FileRow 都有各自的配置變數。這些配置變數會依照不同的 Row 種類而一起改變。值得將這些變數設計成配置物件來保存。</p>
+
+<h2 id="section-4">最後的重構：配置物件的建立</h2>
+
+<p>將各種 Row 的配置變數抽取成物件之後產生 ThisDirConfig, SubDirConfig, FileConfig 三種實作同樣方法的類別，原本配置變數被封裝成各自方法的回傳值。</p>
+
+<p>```ruby
+class ThisDirConfig</p>
+
+<pre><code>def initialize 
+	#p "init #{path}"
+	@abs_path = File.absolute_path(Dir.getwd)
+end 
+
+def path
+	@abs_path
+end
+
+def display
+	@abs_path+"/"
+end
+
+def dive_path
+	@abs_path + "/../"
+end
+
+def dive_display
+	"&lt;=="
+end
+
+def desc_path
+	@abs_path + "/.desc"
+end end
+</code></pre>
+
+<p>class SubDirConfig
+	# code omitted
+end </p>
+
+<p>class FileConfig
+	# code omitted
+end</p>
+
+<p>```</p>
+
+<p>(-) genSubDirRow, genThisDirRow, genFileRow : 將配置變數抽取成物件之後，原本作為其存放位置的三個方法責任已盡，予以移除。</p>
+
+<p>(+) add_row_by_config, gen_row_by_config : 因應 Config 物件產生而改變的方法，方法傳入的參數因為共屬於 config 物件而結合在一起，較原始版本簡潔。因為上面三個方法的消失與 Config 物件的產生，genDiveDirHanlder 方法的調用處再次回到產生 GUI 的方法內。</p>
+
+<p>```ruby</p>
+
+<p>def add_row_by_config config
+	# code to get desc
+	row = gen_row_by_config config, desc
+end</p>
+
+<p>def gen_row_by_config config, desc
+	# code to gen row GUI
+	if config.dive_path != nil
+		tag_event_box.signal_connect(“button_press_event”) do
+			genDiveDirHanlder(config.dive_path).call
+		end
+	end
+	row
+end</p>
+
+<p>```</p>
+
+<p>(m) processing flow: 最後的處理流程。在一開始變動路徑被偵測到時立刻判斷使否為目錄，並產生相關的配置物件。</p>
+
+<p>```ruby</p>
+
+<h1 id="entry-code">entry code</h1>
+<p>if (File.stat path).directory?
+	c =(SubDirConfig.new path)					
+else
+	c = (FileConfig.new path)
+end
+add_row_by_config  c</p>
+
+<p>```</p>
+
+<h2 id="section-5">後記</h2>
+
+<p>整個重構流程的指導原則為 SRP 單一責任原則，即一個區塊內程式碼的變更只能有一種理由。以此將風馬牛不相干的程式碼移出該區塊。此例中為將判斷是否為目錄而決定顯示字串的邏輯，移出 GUI 元件生成邏輯。</p>
+
+<h2 id="section-6">心得</h2>
+
+<p>初用 ruby 寫 project 有些 naming style 還是因襲著 Java, C# 的習慣，多寫一點應該會改善。這個案例重構起來很累人，但是後來發現值得寫成教材。</p>
+]]></content>
+  </entry>
+  
+</feed>

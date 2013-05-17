@@ -1,24 +1,95 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Eric's Blog]]></title>
-  <link href="http://yannbelief.github.io/atom.xml" rel="self"/>
-  <link href="http://yannbelief.github.io/"/>
-  <updated>2013-05-17T16:56:50+08:00</updated>
-  <id>http://yannbelief.github.io/</id>
-  <author>
-    <name><![CDATA[Eric]]></name>
-    
-  </author>
-  <generator uri="http://octopress.org/">Octopress</generator>
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>重構案例1-DirDesc - Eric's Blog</title>
+  <meta name="author" content="Eric">
 
   
-  <entry>
-    <title type="html"><![CDATA[重構案例1-DirDesc]]></title>
-    <link href="http://yannbelief.github.io/blog/2013/05/17/zhong-gou-an-li-1-dirdesc/"/>
-    <updated>2013-05-17T13:00:00+08:00</updated>
-    <id>http://yannbelief.github.io/blog/2013/05/17/zhong-gou-an-li-1-dirdesc</id>
-    <content type="html"><![CDATA[<h2 id="section">前言</h2>
+  <meta name="description" content="前言 這個案例是個人 DirDesc Project 裡的程式碼，問題出在產生 GUI 元件的方法裡夾雜了各種不同的顯示邏輯，這些邏輯應該在種類判定之時，就予以決定，卻擠在 GUI 元件產生的前一刻，才做判斷，以至於在各種邏輯交雜之處的 getRowEntity 方法內產生了許多 bug， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://yannbelief.github.io/blog/2013/05/17/zhong-gou-an-li-1-dirdesc">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Eric's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Eric's Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:yannbelief.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">重構案例1-DirDesc</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-17T13:00:00+08:00" pubdate data-updated="true">May 17<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2 id="section">前言</h2>
 
 <p>這個案例是個人 DirDesc Project 裡的程式碼，問題出在產生 GUI 元件的方法裡夾雜了各種不同的顯示邏輯，這些邏輯應該在種類判定之時，就予以決定，卻擠在 GUI 元件產生的前一刻，才做判斷，以至於在各種邏輯交雜之處的 getRowEntity 方法內產生了許多 bug，在除錯上增加了許多困難。</p>
 
@@ -375,57 +446,134 @@
 <h2 id="section-6">心得</h2>
 
 <p>初用 ruby 寫 project 有些 naming style 還是因襲著 Java, C# 的習慣，多寫一點應該會改善。這個案例重構起來很累人，但是後來發現值得寫成教材。</p>
-]]></content>
-  </entry>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
   
-  <entry>
-    <title type="html"><![CDATA[Inheritance: When?]]></title>
-    <link href="http://yannbelief.github.io/blog/2013/05/10/inheritance-when/"/>
-    <updated>2013-05-10T13:57:00+08:00</updated>
-    <id>http://yannbelief.github.io/blog/2013/05/10/inheritance-when</id>
-    <content type="html"><![CDATA[<p>何時使用繼承？</p>
 
-<blockquote>
-  <p>Inheritance is appropriate only in circumstances where the subclass really is a subtype of the superclass. In other words, a class B should extend a class A only if an “is-a” relationship exists between the two classes. If you are tempted to have a class B extend a class A, ask yourself the question: <strong>Is every B really an A?</strong> If you cannot truthfully answer yes to this question, B should not extend A. If the answer is no, it is often the case that B should contain a private instance of A and expose a smaller and simpler API: A is not an essential part of B, merely a detail of its implementation. (Effective Java, 2/e, p.85~86)</p>
-</blockquote>
+<span class="byline author vcard">Posted by <span class="fn">Eric</span></span>
 
-<p>換句話說就是繼承的關係要符合 Liskov Substitution Principle。在原本使用父類別的場合（e.g. 方法、類別）傳入子類別時，不會產生不一致的行為。</p>
+      
 
-<p>使用繼承唯有當父類別是專門設計來給子類別繼承的（e.g. 抽象父類別）。換句話說，父類別有意識到未來可能產生的繼承關係。（最極端的例子是介面，它是專門設計用來讓子類別填入實作方法的。）</p>
 
-<p>父類別若包含太多實作方法，子類別繼承之後很容易修改到原本的實作，或可能產生退化的實作方法<sub><a href="#1">1</a></sub>（頭重腳輕）。用 Uncle Bob 的穩定度分析來說，即一個套件的穩定程度應該要跟它的抽象程度一致。套用在類別上也適用。父類別是依賴關係中的最下層，屬於被依賴的一方，對依賴它的子類別有維護功能合約的責任，所以需要較大的穩定度，不應該包含太多的實作細節。</p>
 
-<h2 id="section">註：</h2>
 
-<p><a id="1"></a>[1] 就像這隻解釋 LSP 影片中的 Car 例子，Tesla 實作了 Car 介面，但它是電動車，無須變速箱<sub><a href="#2">2</a></sub>，所以面對 Car 介面要求提供的 GearShiftUp() <sub><a href="#3">3</a></sub>方法採取了退化的實作，即產生不做事的空白方法，或者在方法被呼叫時丟出例外。這兩種實作均產生了非預期的行為，與 Car 介面擔保的功能不同。這種狀況違反了 LSP，會破壞原本依賴 Car 介面約定的功能而運作正常的程式碼，所以我們說 Tesla 不是一個（有變速箱的） Car 。 
-影片來源： <a href="http://www.d80.co.uk/post/2013/04/05/LSP-The-Liskov-Substitution-Principle-in-5-minutes.aspx">LSP - The Liskov Substitution Principle in 5 minutes</a></p>
 
-<p><a id="2"></a>[2] Tesla Model S 不需要變速箱、傳動軸、與排氣管。來源：<a href="http://www.inside.com.tw/2013/01/26/tesla">鋼鐵人的四門房車，Tesla Model S 試駕</a></p>
 
-<p><a id="3"></a>[3] Gear shift up ：換檔，換至大的齒輪， 切換到低轉速高力道的檔位。 參考文件：<a href="http://www.ecodrive.org/en/what_is_ecodriving-/the_golden_rules_of_ecodriving/#shift">Shift up early - The golden rules of ecodriving</a></p>
-]]></content>
-  </entry>
+
+
   
-  <entry>
-    <title type="html"><![CDATA[Multiline Comments in python]]></title>
-    <link href="http://yannbelief.github.io/blog/2013/05/09/this-is-test-page/"/>
-    <updated>2013-05-09T03:57:00+08:00</updated>
-    <id>http://yannbelief.github.io/blog/2013/05/09/this-is-test-page</id>
-    <content type="html"><![CDATA[<h2 id="multiline-comments-in-python">Multiline Comments in python</h2>
-<p>You can use triple-quoted strings. When they’re not a docstring (first thing in a class/function/module), they are ignored.</p>
 
-<p>Guido van Rossum (creator of Python) approves.</p>
-<pre>
-'''
-This is a multiline
-comment.
-'''
-</pre>
-<p>From <a href="http://stackoverflow.com/questions/7696924/multiline-comments-in-python">Multiline Comments in python</a></p>
 
-<p>Ref <a href="http://stackoverflow.com/questions/397148/why-doesnt-python-have-multiline-comments">Why doesn’t Python have multiline comments?</a></p>
+<time datetime="2013-05-17T13:00:00+08:00" pubdate data-updated="true">May 17<span>th</span>, 2013</time>
+      
 
-]]></content>
-  </entry>
+<span class="categories">
   
-</feed>
+    <a class='category' href='/blog/categories/refactoring/'>refactoring</a>, <a class='category' href='/blog/categories/ruby/'>ruby</a>
+  
+</span>
+
+
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://yannbelief.github.io/blog/2013/05/17/zhong-gou-an-li-1-dirdesc/" data-via="" data-counturl="http://yannbelief.github.io/blog/2013/05/17/zhong-gou-an-li-1-dirdesc/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/05/10/inheritance-when/" title="Previous Post: Inheritance: When?">&laquo; Inheritance: When?</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/05/17/zhong-gou-an-li-1-dirdesc/">重構案例1-DirDesc</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/05/10/inheritance-when/">Inheritance: When?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/05/09/this-is-test-page/">Multiline Comments in python</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/inheritance/'>Inheritance (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (1)</a></li>
+<li class='category'><a href='/blog/categories/comment/'>comment (1)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/refactoring/'>refactoring (1)</a></li>
+<li class='category'><a href='/blog/categories/ruby/'>ruby (1)</a></li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Eric -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
